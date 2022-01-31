@@ -1,4 +1,4 @@
-# `menu` app
+# `market` app
 ## `backend`
 A Rust project that runs the backend server for the app.
 
