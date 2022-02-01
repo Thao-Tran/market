@@ -25,7 +25,7 @@ fn users_create(
   warp::path!("users")
     .and(warp::post())
     .and(json_body())
-    .and(with_db())
+    .and(with_db(settings.clone()))
     .and(with_auth(settings))
     .and_then(handlers::create_user)
 }
@@ -37,7 +37,7 @@ fn tokens_create(
   warp::path!("tokens")
     .and(warp::post())
     .and(json_body())
-    .and(with_db())
+    .and(with_db(settings.clone()))
     .and(with_auth(settings))
     .and_then(handlers::create_token)
 }
@@ -52,8 +52,10 @@ fn require_token(
 }
 
 /// Include for endpoints that use the database.
-fn with_db() -> impl Filter<Extract = (Db,), Error = std::convert::Infallible> + Clone {
-  warp::any().map(|| Db::new().unwrap())
+fn with_db(
+  settings: Settings,
+) -> impl Filter<Extract = (Db,), Error = std::convert::Infallible> + Clone {
+  warp::any().map(move || Db::new(settings.clone()).unwrap())
 }
 
 /// Include for endpoints that use authentication methods.

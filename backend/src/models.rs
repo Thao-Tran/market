@@ -30,6 +30,7 @@ pub struct Settings {
   pub salt_iterations: NonZeroU32,
   pub salt: String,
   pub jwt_secret: String,
+  pub db_path: String,
 }
 
 #[derive(Debug)]

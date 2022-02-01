@@ -1,4 +1,4 @@
-use super::models::{PasswordHash, User};
+use super::models::{PasswordHash, Settings, User};
 use rusqlite::{params, Connection, DatabaseName, Result};
 use strum_macros::Display;
 use uuid::Uuid;
@@ -16,8 +16,8 @@ enum Tables {
 
 impl Db {
   /// Create a new database connection.
-  pub fn new() -> Result<Db> {
-    let conn = Connection::open("menu.db")?;
+  pub fn new(settings: Settings) -> Result<Db> {
+    let conn = Connection::open(settings.db_path)?;
     let db = Db { conn };
     db.create_tables()?;
 
