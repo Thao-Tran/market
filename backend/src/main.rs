@@ -1,4 +1,3 @@
-use backend::auth::Auth;
 use backend::{filters, handlers, models};
 use std::env;
 use warp::Filter;
@@ -19,10 +18,8 @@ async fn main() {
         .unwrap();
     let settings = settings_config.try_into::<models::Settings>().unwrap();
 
-    let auth = Auth::new(settings.clone());
-
-    let api = filters::users(auth.clone())
-        .or(filters::tokens(auth.clone()))
+    let api = filters::users(settings.clone())
+        .or(filters::tokens(settings.clone()))
         .recover(handlers::rejection);
 
     let routes = api.with(warp::log("backend"));
