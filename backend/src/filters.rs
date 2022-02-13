@@ -47,7 +47,7 @@ fn tokens_create(
 fn require_token(
   settings: Settings,
 ) -> impl Filter<Extract = ((),), Error = warp::Rejection> + Clone {
-  warp::header::header::<String>("Authorization")
+  warp::cookie::<String>("token")
     .and(with_auth(settings))
     .and_then(handlers::verify_token)
 }

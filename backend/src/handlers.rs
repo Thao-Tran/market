@@ -1,14 +1,12 @@
 use super::auth::Auth;
 use super::db::Db;
-use super::models::{AuthError, HandlerError, Token, User, UserReq};
+use super::models::{HandlerError, Token, User, UserReq};
 use jsonapi::api::*;
 use jsonapi::jsonapi_model;
 use jsonapi::model::*;
 use std::convert::Infallible;
 use uuid::Uuid;
-use warp::http::StatusCode;
-
-const BEARER_PREFIX: &str = "Bearer ";
+use warp::http::{Response, StatusCode};
 
 jsonapi_model!(User; "users");
 jsonapi_model!(UserReq; "users");
@@ -103,24 +101,19 @@ pub async fn create_token<'a>(
     }
   };
 
-  return Ok(warp::reply::with_status(
-    warp::reply::json(&token.to_jsonapi_document()),
-    StatusCode::CREATED,
-  ));
+  let token_cookie = format!("token={:?}; HttpOnly", token.token);
+
+  let response = Response::builder()
+    .status(StatusCode::NO_CONTENT)
+    .header(warp::http::header::SET_COOKIE, token_cookie)
+    .body("")
+    .unwrap();
+  return Ok(response);
 }
 
 /// Verify that an authorization token is still valid.
-pub async fn verify_token<'a>(auth_header: String, auth: Auth) -> Result<(), warp::Rejection> {
-  if !auth_header.starts_with(BEARER_PREFIX) {
-    log::debug!("Failed to verify token: authorization header is invalid");
-    return Err(warp::reject::custom(HandlerError::Auth(
-      AuthError::InvalidToken,
-    )));
-  }
-
-  let token = auth_header.trim_start_matches(BEARER_PREFIX);
-
-  if let Err(error) = auth.verify_token(token) {
+pub async fn verify_token<'a>(token: String, auth: Auth) -> Result<(), warp::Rejection> {
+  if let Err(error) = auth.verify_token(&token) {
     log::debug!("Failed to verify token: {:?}", error);
     return Err(warp::reject::custom(HandlerError::Auth(error)));
   }
