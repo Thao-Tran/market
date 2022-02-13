@@ -8,6 +8,7 @@ pub type PasswordHash = [u8; HASH_LEN];
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct UserReq {
+  pub id: String, // Actually not used but jsonapi doesn't allow partial resources yet
   pub email: String,
   pub password: String,
 }

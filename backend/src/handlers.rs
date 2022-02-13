@@ -11,7 +11,21 @@ use warp::http::StatusCode;
 const BEARER_PREFIX: &str = "Bearer ";
 
 jsonapi_model!(User; "users");
+jsonapi_model!(UserReq; "users");
 jsonapi_model!(Token; "tokens");
+
+/// Parse a User request body from a JSONAPI document body.
+///
+/// Rejects with a HandlerError::Conflict if a user already exists with the same email.
+pub async fn parse_user_req<'a>(req: DocumentData) -> Result<UserReq, warp::Rejection> {
+  match UserReq::from_jsonapi_document(&req) {
+    Ok(new_user) => Ok(new_user),
+    Err(error) => {
+      log::debug!("Failed to parse user from request: {:?}", error);
+      Err(warp::reject::custom(HandlerError::BadRequest))
+    }
+  }
+}
 
 /// Create a new user.
 ///
@@ -125,6 +139,9 @@ pub async fn rejection(err: warp::Rejection) -> Result<impl warp::Reply, Infalli
   } else if let Some(HandlerError::Auth(_)) = err.find() {
     status = StatusCode::UNAUTHORIZED;
     title = "Authorization failure";
+  } else if let Some(HandlerError::BadRequest) = err.find() {
+    status = StatusCode::BAD_REQUEST;
+    title = "Request is invalid";
   } else if let Some(HandlerError::Conflict) = err.find() {
     status = StatusCode::CONFLICT;
     title = "Resource already exists";

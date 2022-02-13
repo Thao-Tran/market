@@ -2,6 +2,7 @@ use super::auth::Auth;
 use super::db::Db;
 use super::handlers;
 use super::models::{Settings, UserReq};
+use jsonapi::model::DocumentData;
 use warp::Filter;
 
 /// The Users filters combined.
@@ -24,7 +25,7 @@ fn users_create(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
   warp::path!("users")
     .and(warp::post())
-    .and(json_body())
+    .and(with_user_req())
     .and(with_db(settings.clone()))
     .and(with_auth(settings))
     .and_then(handlers::create_user)
@@ -36,7 +37,7 @@ fn tokens_create(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
   warp::path!("tokens")
     .and(warp::post())
-    .and(json_body())
+    .and(with_user_req())
     .and(with_db(settings.clone()))
     .and(with_auth(settings))
     .and_then(handlers::create_token)
@@ -66,6 +67,13 @@ fn with_auth(
 }
 
 /// Include for endpoints that expect a request body.
-fn json_body() -> impl Filter<Extract = (UserReq,), Error = warp::Rejection> + Clone {
+fn json_body() -> impl Filter<Extract = (DocumentData,), Error = warp::Rejection> + Clone {
   warp::body::content_length_limit(1024 * 16).and(warp::body::json())
+}
+
+// Include for endpoints that expect a User request body.
+fn with_user_req() -> impl Filter<Extract = (UserReq,), Error = warp::Rejection> + Clone {
+  warp::any()
+    .and(json_body())
+    .and_then(handlers::parse_user_req)
 }
