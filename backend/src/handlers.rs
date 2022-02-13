@@ -10,6 +10,9 @@ use warp::http::StatusCode;
 
 const BEARER_PREFIX: &str = "Bearer ";
 
+jsonapi_model!(User; "users");
+jsonapi_model!(Token; "tokens");
+
 /// Create a new user.
 ///
 /// Rejects with a HandlerError::Conflict if a user already exists with the same email.
@@ -47,8 +50,6 @@ pub async fn create_user<'a>(
     log::debug!("Failed to close db: {:?}", error);
     return Err(warp::reject::custom(HandlerError::Db(error)));
   }
-
-  jsonapi_model!(User; "user");
 
   Ok(warp::reply::with_status(
     warp::reply::json(&user.to_jsonapi_document()),
@@ -88,7 +89,6 @@ pub async fn create_token<'a>(
     }
   };
 
-  jsonapi_model!(Token; "token");
   return Ok(warp::reply::with_status(
     warp::reply::json(&token.to_jsonapi_document()),
     StatusCode::CREATED,
