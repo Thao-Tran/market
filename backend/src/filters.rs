@@ -16,7 +16,7 @@ pub fn users(
 pub fn tokens(
   settings: Settings,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-  tokens_create(settings.clone())
+  tokens_create(settings.clone()).or(tokens_test(settings.clone()))
 }
 
 /// POST /users
@@ -41,6 +41,18 @@ fn tokens_create(
     .and(with_db(settings.clone()))
     .and(with_auth(settings))
     .and_then(handlers::create_token)
+}
+
+/// GET /tokens
+///
+/// Dummy filter to test token verification.
+fn tokens_test(
+  settings: Settings,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+  warp::path!("tokens")
+    .and(warp::get())
+    .and(require_token(settings))
+    .and_then(handlers::test_token)
 }
 
 /// Include for protected endpoints.

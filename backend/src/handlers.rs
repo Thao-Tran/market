@@ -111,6 +111,11 @@ pub async fn create_token<'a>(
   return Ok(response);
 }
 
+/// Dummy handler to test token verification.
+pub async fn test_token<'a>(_: ()) -> Result<impl warp::Reply, warp::Rejection> {
+  Ok(warp::reply())
+}
+
 /// Verify that an authorization token is still valid.
 pub async fn verify_token<'a>(token: String, auth: Auth) -> Result<(), warp::Rejection> {
   if let Err(error) = auth.verify_token(&token) {
