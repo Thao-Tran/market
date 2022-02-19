@@ -1,6 +1,9 @@
 use super::auth::Auth;
 use super::db::Db;
-use super::models::{HandlerError, Token, User, UserReq};
+use super::models::{
+  HandlerError, TokenReq, User, UserReq, LOGGED_IN_COOKIE, SESSION_DURATION, TOKEN_COOKIE,
+};
+use chrono::Duration;
 use jsonapi::api::*;
 use jsonapi::jsonapi_model;
 use jsonapi::model::*;
@@ -10,13 +13,13 @@ use warp::http::{Response, StatusCode};
 
 jsonapi_model!(User; "users");
 jsonapi_model!(UserReq; "users");
-jsonapi_model!(Token; "tokens");
+jsonapi_model!(TokenReq; "tokens");
 
-/// Parse a User request body from a JSONAPI document body.
+/// Parse a JSONAPI document body.
 ///
-/// Rejects with a HandlerError::Conflict if a user already exists with the same email.
-pub async fn parse_user_req<'a>(req: DocumentData) -> Result<UserReq, warp::Rejection> {
-  match UserReq::from_jsonapi_document(&req) {
+/// Rejects with BadRequest if the parsing fails
+pub async fn parse_jsonapi_doc<T: JsonApiModel>(req: DocumentData) -> Result<T, warp::Rejection> {
+  match T::from_jsonapi_document(&req) {
     Ok(new_user) => Ok(new_user),
     Err(error) => {
       log::debug!("Failed to parse user from request: {:?}", error);
@@ -71,7 +74,7 @@ pub async fn create_user<'a>(
 
 /// Create and sign a new JWT token to be used for protected endpoints.
 pub async fn create_token<'a>(
-  user_attempt: UserReq,
+  user_attempt: TokenReq,
   db: Db,
   auth: Auth,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -80,7 +83,7 @@ pub async fn create_token<'a>(
     Err(error) => {
       if error == rusqlite::Error::QueryReturnedNoRows {
         log::debug!("Failed to authorize user: user with email does not exist");
-        return Err(warp::reject::not_found());
+        return Err(warp::reject::custom(HandlerError::NotFound));
       }
 
       log::debug!("Failed to query database: {:?}", error);
@@ -101,10 +104,19 @@ pub async fn create_token<'a>(
     }
   };
 
-  let token_cookie = format!("token={:?}; HttpOnly", token.token);
+  let max_age = Duration::minutes(SESSION_DURATION).num_seconds();
+  let loggedin_cookie = format!(
+    "{}={:?}; Max-Age={}; Path=/",
+    LOGGED_IN_COOKIE, true, max_age
+  );
+  let token_cookie = format!(
+    "{}={}; Max-Age={}; Path=/; HttpOnly",
+    TOKEN_COOKIE, token, max_age
+  );
 
   let response = Response::builder()
     .status(StatusCode::NO_CONTENT)
+    .header(warp::http::header::SET_COOKIE, loggedin_cookie)
     .header(warp::http::header::SET_COOKIE, token_cookie)
     .body("")
     .unwrap();
@@ -128,28 +140,44 @@ pub async fn verify_token<'a>(token: String, auth: Auth) -> Result<(), warp::Rej
 
 /// Rejection handler.
 pub async fn rejection(err: warp::Rejection) -> Result<impl warp::Reply, Infallible> {
-  let status;
-  let title;
+  let (mut status, title, mut headers) = match err.find() {
+    Some(HandlerError::NotFound) => (StatusCode::NOT_FOUND, "Resource not found", vec![]),
+    Some(HandlerError::BadRequest) => (StatusCode::BAD_REQUEST, "Request is invalid", vec![]),
+    Some(HandlerError::Conflict) => (StatusCode::CONFLICT, "Resource already exists", vec![]),
+    Some(HandlerError::Db(_)) => (
+      StatusCode::INTERNAL_SERVER_ERROR,
+      "Database failure",
+      vec![],
+    ),
+    Some(HandlerError::Auth(_)) => (
+      StatusCode::UNAUTHORIZED,
+      "Authorization failure",
+      // Clear token and logged in cookies.
+      vec![
+        (
+          warp::http::header::SET_COOKIE,
+          format!("{}=; Max-Age=0; Path=/", TOKEN_COOKIE),
+        ),
+        (
+          warp::http::header::SET_COOKIE,
+          format!("{}=; Max-Age=0; Path=/", LOGGED_IN_COOKIE),
+        ),
+      ],
+    ),
+    _ => {
+      log::debug!("Unhandled error occurred: {:?}", err);
 
-  if err.is_not_found() {
-    status = StatusCode::NOT_FOUND;
-    title = "Resource not found";
-  } else if let Some(HandlerError::Auth(_)) = err.find() {
-    status = StatusCode::UNAUTHORIZED;
-    title = "Authorization failure";
-  } else if let Some(HandlerError::BadRequest) = err.find() {
-    status = StatusCode::BAD_REQUEST;
-    title = "Request is invalid";
-  } else if let Some(HandlerError::Conflict) = err.find() {
-    status = StatusCode::CONFLICT;
-    title = "Resource already exists";
-  } else if let Some(HandlerError::Db(_)) = err.find() {
-    status = StatusCode::INTERNAL_SERVER_ERROR;
-    title = "Database failure";
-  } else {
-    status = StatusCode::INTERNAL_SERVER_ERROR;
-    title = "Unhandled rejection";
-  }
+      if err.is_not_found() {
+        (StatusCode::NOT_FOUND, "Resource not found", vec![])
+      } else {
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          "Unhandled rejection",
+          vec![],
+        )
+      }
+    }
+  };
 
   let body = JsonApiDocument::Error(DocumentError {
     errors: vec![JsonApiError {
@@ -159,5 +187,26 @@ pub async fn rejection(err: warp::Rejection) -> Result<impl warp::Reply, Infalli
     ..Default::default()
   });
 
-  Ok(warp::reply::with_status(warp::reply::json(&body), status))
+  let ser_body = match serde_json::to_string(&body) {
+    Ok(ser_body) => ser_body,
+    Err(error) => {
+      log::debug!(
+        "Failed to serialize response body in rejection handler: {:?}",
+        error
+      );
+      status = StatusCode::INTERNAL_SERVER_ERROR;
+      headers = vec![];
+      "".to_string()
+    }
+  };
+
+  let mut builder = Response::builder().status(status);
+
+  for (key, value) in headers {
+    builder = builder.header(key, value);
+  }
+
+  let response = builder.body(ser_body).unwrap();
+
+  Ok(response)
 }

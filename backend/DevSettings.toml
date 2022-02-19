@@ -2,3 +2,4 @@ salt_iterations = 100000
 salt = "5a1Ty80ios43ver"
 jwt_secret = "my5i11y1i15ecr3t"
 db_path = "market.db"
+frontend_host = "http://localhost:3000"

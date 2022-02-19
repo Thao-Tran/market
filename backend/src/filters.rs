@@ -1,8 +1,9 @@
 use super::auth::Auth;
 use super::db::Db;
 use super::handlers;
-use super::models::{Settings, UserReq};
-use jsonapi::model::DocumentData;
+use super::models::{Settings, TokenReq, UserReq, TOKEN_COOKIE};
+use jsonapi::model::JsonApiModel;
+use warp::http::{header, Method};
 use warp::Filter;
 
 /// The Users filters combined.
@@ -25,9 +26,9 @@ fn users_create(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
   warp::path!("users")
     .and(warp::post())
-    .and(with_user_req())
+    .and(with_jsonapi_doc::<UserReq>())
     .and(with_db(settings.clone()))
-    .and(with_auth(settings))
+    .and(with_auth(settings.clone()))
     .and_then(handlers::create_user)
 }
 
@@ -37,9 +38,9 @@ fn tokens_create(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
   warp::path!("tokens")
     .and(warp::post())
-    .and(with_user_req())
+    .and(with_jsonapi_doc::<TokenReq>())
     .and(with_db(settings.clone()))
-    .and(with_auth(settings))
+    .and(with_auth(settings.clone()))
     .and_then(handlers::create_token)
 }
 
@@ -51,7 +52,7 @@ fn tokens_test(
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
   warp::path!("tokens")
     .and(warp::get())
-    .and(require_token(settings))
+    .and(require_token(settings.clone()))
     .and_then(handlers::test_token)
 }
 
@@ -59,7 +60,7 @@ fn tokens_test(
 fn require_token(
   settings: Settings,
 ) -> impl Filter<Extract = ((),), Error = warp::Rejection> + Clone {
-  warp::cookie::<String>("token")
+  warp::cookie::<String>(TOKEN_COOKIE)
     .and(with_auth(settings))
     .and_then(handlers::verify_token)
 }
@@ -78,14 +79,28 @@ fn with_auth(
   warp::any().map(move || Auth::new(settings.clone()))
 }
 
-/// Include for endpoints that expect a request body.
-fn json_body() -> impl Filter<Extract = (DocumentData,), Error = warp::Rejection> + Clone {
-  warp::body::content_length_limit(1024 * 16).and(warp::body::json())
+// Include for endpoints that expect a JSON:API request body.
+fn with_jsonapi_doc<T: JsonApiModel>(
+) -> impl Filter<Extract = (T,), Error = warp::Rejection> + Clone {
+  warp::header::exact_ignore_case("content-type", "application/vnd.api+json")
+    .and(warp::body::content_length_limit(1024 * 16))
+    .and(warp::body::bytes())
+    .map(|bytes: warp::hyper::body::Bytes| serde_json::from_slice(&bytes.to_vec()).unwrap())
+    .and_then(handlers::parse_jsonapi_doc::<T>)
 }
 
-// Include for endpoints that expect a User request body.
-fn with_user_req() -> impl Filter<Extract = (UserReq,), Error = warp::Rejection> + Clone {
-  warp::any()
-    .and(json_body())
-    .and_then(handlers::parse_user_req)
+/// Include CORS.
+pub fn with_cors(settings: Settings) -> warp::cors::Cors {
+  warp::cors()
+    .allow_credentials(true)
+    .allow_origin(&settings.frontend_host[..])
+    .allow_methods(vec![
+      Method::OPTIONS,
+      Method::POST,
+      Method::GET,
+      Method::DELETE,
+    ])
+    .allow_header(header::CONTENT_TYPE)
+    .expose_header(header::SET_COOKIE)
+    .build()
 }

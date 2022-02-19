@@ -21,7 +21,8 @@ async fn main() {
     let api = filters::users(settings.clone())
         .or(filters::tokens(settings.clone()))
         .recover(handlers::rejection);
-
-    let routes = api.with(warp::log("backend"));
+    let routes = api
+        .with(warp::log("backend"))
+        .with(filters::with_cors(settings.clone()));
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

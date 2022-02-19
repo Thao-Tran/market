@@ -1,4 +1,4 @@
-use super::models::{AuthError, PasswordHash, Settings, Token, User};
+use super::models::{AuthError, PasswordHash, Settings, User, SESSION_DURATION};
 use chrono::prelude::*;
 use chrono::Duration;
 use hmac::{Hmac, Mac};
@@ -7,7 +7,6 @@ use jwt::{SignWithKey, VerifyWithKey};
 use ring::{digest, pbkdf2};
 use sha2::Sha256;
 use std::num::NonZeroU32;
-use uuid::Uuid;
 
 const CREDENTIAL_LEN: usize = digest::SHA256_OUTPUT_LEN;
 static PBKDF2_ALG: pbkdf2::Algorithm = pbkdf2::PBKDF2_HMAC_SHA256;
@@ -65,13 +64,13 @@ impl Auth {
   }
 
   /// Validate and create a token for a user.
-  pub fn create_token(&self, user: &User, password_attempt: &str) -> Result<Token, AuthError> {
+  pub fn create_token(&self, user: &User, password_attempt: &str) -> Result<String, AuthError> {
     self.validate_user(user, password_attempt)?;
     let now = Utc::now();
     let claims = RegisteredClaims {
       issued_at: Some(now.timestamp().try_into().unwrap()),
       expiration: Some(
-        (now + Duration::minutes(15))
+        (now + Duration::minutes(SESSION_DURATION))
           .timestamp()
           .try_into()
           .unwrap(),
@@ -79,10 +78,7 @@ impl Auth {
       ..Default::default()
     };
     match claims.sign_with_key(&self.key) {
-      Ok(token) => Ok(Token {
-        id: Uuid::new_v4(),
-        token,
-      }),
+      Ok(token) => Ok(token),
       Err(error) => Err(AuthError::JwtError(error)),
     }
   }

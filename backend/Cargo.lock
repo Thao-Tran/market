@@ -83,6 +83,7 @@ dependencies = [
  "ring",
  "rusqlite",
  "serde 1.0.133",
+ "serde_json",
  "sha2",
  "strum_macros",
  "tokio",
