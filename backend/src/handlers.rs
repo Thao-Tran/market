@@ -123,6 +123,20 @@ pub async fn create_token<'a>(
   return Ok(response);
 }
 
+/// Clear token cookies.
+pub async fn delete_token<'a>() -> Result<impl warp::Reply, warp::Rejection> {
+  let loggedin_cookie = format!("{}=; Max-Age=0; Path=/", LOGGED_IN_COOKIE);
+  let token_cookie = format!("{}=; Max-Age=0; Path=/; HttpOnly", TOKEN_COOKIE);
+
+  let response = Response::builder()
+    .status(StatusCode::NO_CONTENT)
+    .header(warp::http::header::SET_COOKIE, loggedin_cookie)
+    .header(warp::http::header::SET_COOKIE, token_cookie)
+    .body("")
+    .unwrap();
+  return Ok(response);
+}
+
 /// Dummy handler to test token verification.
 pub async fn test_token<'a>(_: ()) -> Result<impl warp::Reply, warp::Rejection> {
   Ok(warp::reply())

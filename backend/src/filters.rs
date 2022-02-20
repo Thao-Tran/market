@@ -17,7 +17,9 @@ pub fn users(
 pub fn tokens(
   settings: Settings,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-  tokens_create(settings.clone()).or(tokens_test(settings.clone()))
+  tokens_create(settings.clone())
+    .or(tokens_test(settings.clone()))
+    .or(tokens_delete())
 }
 
 /// POST /users
@@ -42,6 +44,13 @@ fn tokens_create(
     .and(with_db(settings.clone()))
     .and(with_auth(settings.clone()))
     .and_then(handlers::create_token)
+}
+
+/// DELETE /tokens
+fn tokens_delete() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+  warp::path!("tokens")
+    .and(warp::delete())
+    .and_then(handlers::delete_token)
 }
 
 /// GET /tokens
