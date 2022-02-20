@@ -57,6 +57,9 @@
 		margin: 0 1.5em;
 		display: flex;
 		justify-content: space-between;
+		max-width: 1024px;
+		width: 100%;
+		padding: 1em;
 	}
 
 	header a,
@@ -72,7 +75,7 @@
 
 	.logo {
 		font-weight: bolder;
-		font-size: large;
+		font-size: x-large;
 	}
 
 	.corner a {
@@ -106,7 +109,7 @@
 		border-bottom: 2px solid var(--background);
 	}
 
-	li.active {
+	li.active, li:hover {
 		border-bottom: 2px solid var(--accent-color);
 	}
 
@@ -124,9 +127,5 @@
 		transition: color 0.2s linear;
 		background: none;
 		border: none;
-	}
-
-	a:hover {
-		color: var(--accent-color);
 	}
 </style>
