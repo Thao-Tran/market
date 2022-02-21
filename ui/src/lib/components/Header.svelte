@@ -76,6 +76,7 @@
 	.logo {
 		font-weight: bolder;
 		font-size: x-large;
+		padding: 0 0.5em;
 	}
 
 	.corner a {
