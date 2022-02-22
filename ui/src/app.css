@@ -1,8 +1,7 @@
 @import '@fontsource/fira-mono';
 
 :root {
-	font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
 	--pure-white: #ffffff;
 	--primary-color: #b9c6d2;
@@ -12,17 +11,27 @@
 	--heading-color: rgba(0, 0, 0, 0.7);
 	--text-color: #444444;
 	--background-without-opacity: rgba(255, 255, 255, 0.7);
+	--max-width: 2048px;
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
 }
 
+html {
+	height: 100%;
+	width: 100%;
+	font-size: 8px;
+}
+
 body {
-	min-height: 100vh;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 	margin: 0;
+	font-size: 2rem;
 }
 
 #svelte {
-	min-height: 100vh;
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -48,15 +57,6 @@ a:hover {
 	text-decoration: underline;
 }
 
-h1 {
-	font-size: 2rem;
-	text-align: center;
-}
-
-h2 {
-	font-size: 1rem;
-}
-
 pre {
 	font-size: 16px;
 	font-family: var(--font-mono);
@@ -76,10 +76,4 @@ button {
 
 button:focus:not(:focus-visible) {
 	outline: none;
-}
-
-@media (min-width: 720px) {
-	h1 {
-		font-size: 2.4rem;
-	}
 }

@@ -54,12 +54,15 @@
 
 <style>
 	header {
-		margin: 0 1.5em;
 		display: flex;
 		justify-content: space-between;
-		max-width: 1024px;
 		width: 100%;
-		padding: 1em;
+		max-width: var(--max-width);
+		padding: 1rem 0;
+	}
+
+	.logo {
+		padding: 0 2rem;
 	}
 
 	header a,
@@ -76,13 +79,11 @@
 	.logo {
 		font-weight: bolder;
 		font-size: x-large;
-		padding: 0 0.5em;
 	}
 
 	.corner a {
 		display: flex;
 		align-items: center;
-		justify-content: center;
 		width: 100%;
 		height: 100%;
 	}
@@ -90,6 +91,7 @@
 	nav {
 		display: flex;
 		justify-content: center;
+		padding: 0 2rem;
 		--background: rgba(255, 255, 255, 0.7);
 	}
 
@@ -97,7 +99,7 @@
 		position: relative;
 		padding: 0;
 		margin: 0;
-		height: 3em;
+		height: 6rem;
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -107,11 +109,11 @@
 	li {
 		position: relative;
 		height: 100%;
-		border-bottom: 2px solid var(--background);
+		border-bottom: 0.25rem solid var(--background);
 	}
 
 	li.active, li:hover {
-		border-bottom: 2px solid var(--accent-color);
+		border-bottom: 0.25rem solid var(--accent-color);
 	}
 
 	nav a,
@@ -119,7 +121,7 @@
 		display: flex;
 		height: 100%;
 		align-items: center;
-		padding: 0 1em;
+		padding: 0 2rem;
 		color: var(--heading-color);
 		font-weight: bold;
 		font-size: medium;
