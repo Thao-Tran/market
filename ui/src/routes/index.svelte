@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>market</title>
+  <title>market</title>
 </svelte:head>
 
 <div />

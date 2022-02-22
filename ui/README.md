@@ -5,6 +5,7 @@ UI for the `market` web app built in Svelte with SvelteKit.
 ## Developing
 
 Install dependencies:
+
 ```bash
 npm install
 ```
