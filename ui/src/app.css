@@ -1,19 +1,20 @@
 @import '@fontsource/fira-mono';
 
 :root {
-  font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  --font-mono: 'Fira Mono', monospace;
+  font-family: 'Fira Mono', monospace;
   --pure-white: #ffffff;
   --primary-color: #b9c6d2;
   --secondary-color: #d0dde9;
   --tertiary-color: #edf0f8;
-  --accent-color: #272b4d;
+  --accent-color: #3b328b;
+  --focused-accent-color: #292261;
   --heading-color: rgba(0, 0, 0, 0.7);
   --text-color: #444444;
   --background-without-opacity: rgba(255, 255, 255, 0.7);
   --max-width: 2048px;
   --column-width: 42rem;
   --column-margin-top: 4rem;
+  --header-height: 6rem;
 }
 
 html {
@@ -59,7 +60,6 @@ a:hover {
 
 pre {
   font-size: 16px;
-  font-family: var(--font-mono);
   background-color: rgba(255, 255, 255, 0.45);
   border-radius: 3px;
   box-shadow: 2px 2px 6px rgb(255 255 255 / 25%);
@@ -78,6 +78,33 @@ button:focus:not(:focus-visible) {
   outline: none;
 }
 
+button.primary {
+  font-size: 2rem;
+  background-color: var(--accent-color);
+  border: 0.125rem solid var(--accent-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  color: white;
+}
+
+button.secondary {
+  font-size: 2rem;
+  border: 0.125rem solid var(--accent-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: white;
+  color: var(--accent-color);
+}
+
+button.primary:hover, button.secondary:hover {
+  cursor: pointer;
+  box-shadow: 0rem 0.125rem 0.5rem var(--accent-color);
+}
+
+button.primary:active, button.primary:focus, button.secondary:active, button.secondary:focus {
+  outline: 0.125rem solid var(--accent-color);
+}
+
 input {
   border: 0.125rem solid var(--secondary-color);
   border-radius: 0.5rem;
@@ -87,6 +114,5 @@ input {
 
 input:active,
 input:focus {
-  outline: 0;
-  border: 0.125rem solid var(--accent-color);
+  outline: 0.125rem solid var(--accent-color);
 }

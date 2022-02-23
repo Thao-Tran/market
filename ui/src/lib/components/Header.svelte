@@ -33,41 +33,56 @@
 </script>
 
 <header>
-  <div class="corner">
+  <div class="content">
     <a href="/" class="logo">market</a>
-  </div>
 
-  <nav>
-    <ul>
-      {#if showLogin}
-        <li class:active={$page.url.pathname === '/login'}>
-          <a sveltekit:prefetch href="/login">login</a>
-        </li>
-      {:else}
-        <li>
-          <button on:click={onLogout}>logout</button>
-        </li>
-      {/if}
-    </ul>
-  </nav>
+    <nav>
+      <ul>
+        {#if showLogin}
+          <li class:active={$page.url.pathname === '/login'}>
+            <a sveltekit:prefetch href="/login">login</a>
+          </li>
+        {:else}
+          <li>
+            <button on:click={onLogout}>logout</button>
+          </li>
+        {/if}
+      </ul>
+    </nav>
+  </div>
 </header>
 
 <style>
   header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
+    padding: 2rem 0 0;
+    height: var(--header-height);
+  }
+
+  .content {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
     max-width: var(--max-width);
-    padding: 1rem 0;
   }
 
   .logo {
-    padding: 0 2rem;
+    padding: 1rem;
+    border: 0.5rem solid var(--accent-color);
+    font-weight: 900;
+    font-size: 3rem;
+    color: var(--accent-color);
   }
 
-  header a,
-  header button {
-    font-family: var(--font-mono);
+  .logo:hover {
+    box-shadow: 0rem 0.125rem 0.5rem var(--accent-color);
+  }
+
+  .logo:active, .logo:focus {
+    outline: 0;
+    box-shadow: 0rem 0.125rem 0.5rem var(--accent-color);
   }
 
   header a:hover,
@@ -76,30 +91,15 @@
     cursor: pointer;
   }
 
-  .logo {
-    font-weight: bolder;
-    font-size: x-large;
-  }
-
-  .corner a {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-  }
-
   nav {
     display: flex;
     justify-content: center;
-    padding: 0 2rem;
-    --background: rgba(255, 255, 255, 0.7);
   }
 
   ul {
     position: relative;
     padding: 0;
     margin: 0;
-    height: 6rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -109,7 +109,7 @@
   li {
     position: relative;
     height: 100%;
-    border-bottom: 0.25rem solid var(--background);
+    border-bottom: 0.25rem solid white;
   }
 
   li.active,
@@ -123,13 +123,13 @@
     height: 100%;
     align-items: center;
     padding: 0 2rem;
-    color: var(--heading-color);
-    font-weight: bold;
+    font-weight: 700;
     font-size: medium;
     letter-spacing: 0.1em;
     text-decoration: none;
     transition: color 0.2s linear;
     background: none;
     border: none;
+    color: var(--accent-color);
   }
 </style>

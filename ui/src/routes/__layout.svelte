@@ -19,5 +19,6 @@
     max-width: var(--max-width);
     margin: 0 auto;
     box-sizing: border-box;
+    height: calc(100% - var(--header-height));
   }
 </style>

@@ -13,12 +13,12 @@
   let mode = Mode.Login;
 
   $: registerAction = {
-    class: mode === Mode.Register ? 'active' : '',
+    class: mode === Mode.Register ? 'primary' : 'secondary',
     type: mode === Mode.Register ? 'submit' : 'button',
     onClick: () => (mode = Mode.Register)
   };
   $: loginAction = {
-    class: mode === Mode.Login ? 'active' : '',
+    class: mode === Mode.Login ? 'primary' : 'secondary',
     type: mode === Mode.Login ? 'submit' : 'button',
     onClick: () => (mode = Mode.Login)
   };
@@ -82,29 +82,41 @@
 </script>
 
 <svelte:head>
-  <title>market | login</title>
+  {#if mode === Mode.Login}
+    <title>market | login</title>
+  {:else if mode === Mode.Register}
+    <title>market | register</title>
+  {/if}
 </svelte:head>
 
 <div class="login">
+  {#if mode === Mode.Login}
+    <h1>login</h1>
+  {:else if mode === Mode.Register}
+    <h1>register</h1>
+  {/if}
   <form on:submit|preventDefault={onSubmit}>
+    <label for="email">email</label>
     <input
+      id="email"
       type="email"
       aria-label="Email address"
       placeholder="someone@domain.com"
       bind:value={credentials.email}
       required
     />
-    <input type="password" aria-label="Password" bind:value={credentials.password} required />
+    <label for="password">password</label>
+    <input id="password" type="password" aria-label="Password" bind:value={credentials.password} required />
     <div class="actions">
       <button
         class={registerAction.class}
         type={registerAction.type}
         on:click={registerAction.onClick}
       >
-        Register
+        register
       </button>
       <button class={loginAction.class} type={loginAction.type} on:click={loginAction.onClick}>
-        Login
+        login
       </button>
     </div>
   </form>
@@ -127,29 +139,14 @@
     width: 100%;
   }
 
-  form > * {
-    margin-bottom: 1rem;
+  form > input {
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
   }
 
   .actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 1rem;
-  }
-
-  button {
-    flex: 1;
-    border: 0.125rem solid var(--accent-color);
-    background-color: white;
-    border-radius: 0.5rem;
-  }
-
-  button:hover {
-    cursor: pointer;
-  }
-
-  button.active {
-    background-color: var(--accent-color);
-    color: white;
   }
 </style>
