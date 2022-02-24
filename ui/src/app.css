@@ -96,12 +96,16 @@ button.secondary {
   color: var(--accent-color);
 }
 
-button.primary:hover, button.secondary:hover {
+button.primary:hover,
+button.secondary:hover {
   cursor: pointer;
   box-shadow: 0rem 0.125rem 0.5rem var(--accent-color);
 }
 
-button.primary:active, button.primary:focus, button.secondary:active, button.secondary:focus {
+button.primary:active,
+button.primary:focus,
+button.secondary:active,
+button.secondary:focus {
   outline: 0.125rem solid var(--accent-color);
 }
 

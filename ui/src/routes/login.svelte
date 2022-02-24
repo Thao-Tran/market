@@ -8,9 +8,13 @@
     Register
   }
 
-  const LOGIN_FAIL = 'Failed to login:';
-  const REGISTER_FAIL = 'Failed to register:';
+  enum FailMsg {
+    Login = 'Failed to login:',
+    Register = 'Failed to register:'
+  }
+
   const client = getApiClient();
+
   let credentials = { email: '', password: '' };
   let mode = Mode.Login;
   let errorMsg = '';
@@ -65,7 +69,7 @@
         errorMsg = 'error occurred. Try again in a few minutes.';
       }
 
-      errorMsg = `${LOGIN_FAIL} ${errorMsg}`;
+      errorMsg = `${FailMsg.Login} ${errorMsg}`;
     } catch (e) {
       console.error(e);
     }
@@ -91,7 +95,7 @@
         errorMsg = 'error occurred. Try again in a few minutes.';
       }
 
-      errorMsg = `${REGISTER_FAIL} ${errorMsg}`;
+      errorMsg = `${FailMsg.Register} ${errorMsg}`;
     } catch (e) {
       console.error(e);
     }
@@ -131,7 +135,13 @@
       required
     />
     <label for="password">password</label>
-    <input id="password" type="password" aria-label="Password" bind:value={credentials.password} required />
+    <input
+      id="password"
+      type="password"
+      aria-label="Password"
+      bind:value={credentials.password}
+      required
+    />
     <div class="actions">
       <button
         class={registerAction.class}

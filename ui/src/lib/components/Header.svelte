@@ -80,7 +80,8 @@
     box-shadow: 0rem 0.125rem 0.5rem var(--accent-color);
   }
 
-  .logo:active, .logo:focus {
+  .logo:active,
+  .logo:focus {
     outline: 0;
     box-shadow: 0rem 0.125rem 0.5rem var(--accent-color);
   }
