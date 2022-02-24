@@ -8,19 +8,32 @@
     Register
   }
 
+  const LOGIN_FAIL = 'Failed to login:';
+  const REGISTER_FAIL = 'Failed to register:';
   const client = getApiClient();
   let credentials = { email: '', password: '' };
   let mode = Mode.Login;
+  let errorMsg = '';
 
   $: registerAction = {
     class: mode === Mode.Register ? 'primary' : 'secondary',
     type: mode === Mode.Register ? 'submit' : 'button',
-    onClick: () => (mode = Mode.Register)
+    onClick: (e: Event) => {
+      if (mode !== Mode.Register) {
+        mode = Mode.Register;
+        e.preventDefault();
+      }
+    }
   };
   $: loginAction = {
     class: mode === Mode.Login ? 'primary' : 'secondary',
     type: mode === Mode.Login ? 'submit' : 'button',
-    onClick: () => (mode = Mode.Login)
+    onClick: (e: Event) => {
+      if (mode !== Mode.Login) {
+        mode = Mode.Login;
+        e.preventDefault();
+      }
+    }
   };
 
   onMount(() => {
@@ -40,12 +53,19 @@
         body: JSON.stringify(request.data),
         credentials: 'include'
       });
-      if (res.status !== 204) {
-        const error = await res.json();
-        console.error(res.statusText, error);
-      } else {
+
+      if (res.status === 204) {
         window.location.href = '/';
+        return;
+      } else if (res.status === 404) {
+        errorMsg = 'user with that email does not exist. Register instead?';
+      } else if (res.status < 500) {
+        errorMsg = 'invalid email/password combination.';
+      } else {
+        errorMsg = 'error occurred. Try again in a few minutes.';
       }
+
+      errorMsg = `${LOGIN_FAIL} ${errorMsg}`;
     } catch (e) {
       console.error(e);
     }
@@ -61,12 +81,17 @@
         ...request,
         body: JSON.stringify(request.data)
       });
-      if (res.status !== 201) {
-        const error = await res.json();
-        console.error(res.statusText, error);
-      } else {
+
+      if (res.status === 201) {
         await onLogin();
+        return;
+      } else if (res.status === 409) {
+        errorMsg = 'user with that email already exists. Login instead?';
+      } else {
+        errorMsg = 'error occurred. Try again in a few minutes.';
       }
+
+      errorMsg = `${REGISTER_FAIL} ${errorMsg}`;
     } catch (e) {
       console.error(e);
     }
@@ -119,6 +144,9 @@
         login
       </button>
     </div>
+    <div class="error-msg">
+      {errorMsg}
+    </div>
   </form>
 </div>
 
@@ -148,5 +176,11 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 1rem;
+  }
+
+  .error-msg {
+    color: rgb(194, 3, 3);
+    height: 6rem;
+    margin-top: 2rem;
   }
 </style>
