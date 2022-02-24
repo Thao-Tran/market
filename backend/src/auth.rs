@@ -75,6 +75,7 @@ impl Auth {
           .try_into()
           .unwrap(),
       ),
+      subject: Some(user.id.to_string()),
       ..Default::default()
     };
     match claims.sign_with_key(&self.key) {
@@ -84,7 +85,7 @@ impl Auth {
   }
 
   /// Verify the provided token is still valid.
-  pub fn verify_token(&self, token: &str) -> Result<(), AuthError> {
+  pub fn verify_token(&self, token: &str) -> Result<String, AuthError> {
     let claims_result: Result<RegisteredClaims, jwt::error::Error> =
       token.verify_with_key(&self.key);
 
@@ -99,6 +100,9 @@ impl Auth {
       }
     }
 
-    Ok(())
+    match claims.subject {
+      Some(user_id) => Ok(user_id),
+      None => Err(AuthError::MissingUser)
+    }
   }
 }

@@ -138,18 +138,19 @@ pub async fn delete_token<'a>() -> Result<impl warp::Reply, warp::Rejection> {
 }
 
 /// Dummy handler to test token verification.
-pub async fn test_token<'a>(_: ()) -> Result<impl warp::Reply, warp::Rejection> {
-  Ok(warp::reply())
+pub async fn test_token<'a>(user_id: String) -> Result<impl warp::Reply, warp::Rejection> {
+  Ok(warp::reply::json(&user_id))
 }
 
 /// Verify that an authorization token is still valid.
-pub async fn verify_token<'a>(token: String, auth: Auth) -> Result<(), warp::Rejection> {
-  if let Err(error) = auth.verify_token(&token) {
-    log::debug!("Failed to verify token: {:?}", error);
-    return Err(warp::reject::custom(HandlerError::Auth(error)));
+pub async fn verify_token<'a>(token: String, auth: Auth) -> Result<String, warp::Rejection> {
+  match auth.verify_token(&token) {
+    Ok(user_id) => Ok(user_id),
+    Err(error) => {
+      log::debug!("Failed to verify token: {:?}", error);
+      Err(warp::reject::custom(HandlerError::Auth(error)))
+    }
   }
-
-  Ok(())
 }
 
 /// Rejection handler.

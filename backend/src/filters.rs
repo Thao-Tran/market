@@ -68,7 +68,7 @@ fn tokens_test(
 /// Include for protected endpoints.
 fn require_token(
   settings: Settings,
-) -> impl Filter<Extract = ((),), Error = warp::Rejection> + Clone {
+) -> impl Filter<Extract = (String,), Error = warp::Rejection> + Clone {
   warp::cookie::<String>(TOKEN_COOKIE)
     .and(with_auth(settings))
     .and_then(handlers::verify_token)

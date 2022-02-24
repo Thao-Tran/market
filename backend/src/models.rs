@@ -48,6 +48,7 @@ pub enum AuthError {
   WrongUsernameOrPassword,
   ExpiredToken,
   InvalidToken,
+  MissingUser,
 }
 
 impl warp::reject::Reject for AuthError {}
